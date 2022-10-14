@@ -1,0 +1,31 @@
+Description: drop a test that displays warning
+Author: Xavier Guimard <yadd@debian.org>
+Forwarded: not-needed
+Last-Update: 2020-10-04
+
+--- a/legacy/test/test.js
++++ b/legacy/test/test.js
+@@ -1,6 +1,6 @@
+ const assert = require( 'assert' );
+ const rollup = require( 'rollup' );
+-const typescript = require( '..' );
++const typescript = require( 'rollup-plugin-typescript' );
+ const path = require('path');
+ const commonjs = require('rollup-plugin-commonjs');
+ 
+@@ -249,6 +249,7 @@
+ 		assert.equal(f.foo, "2");
+ 	});
+ 
++    /*
+ 	it('supports dynamic imports', async () => {
+ 		const code = await getCodeFromBundle(await rollup.rollup({
+ 			input: 'sample/dynamic-imports/main.ts',
+@@ -257,6 +258,7 @@
+ 		}));
+ 		assert.notEqual( code.indexOf( 'console.log(\'dynamic\')' ), -1 );
+ 	});
++    */
+ 
+ 	it('supports CommonJS imports when the output format is CommonJS', async () => {
+ 		const output = await evaluateBundle(await rollup.rollup({

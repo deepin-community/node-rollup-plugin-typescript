@@ -1,0 +1,2 @@
+cd packages/typescript
+tape test/test.js

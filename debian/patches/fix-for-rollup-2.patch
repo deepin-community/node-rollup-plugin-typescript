@@ -1,0 +1,27 @@
+Description: fix for current tsc & rollup 2
+Author: Xavier Guimard <yadd@debian.org>
+Forwarded: not-needed
+Last-Update: 2020-10-04
+
+--- a/packages/typescript/src/index.ts
++++ b/packages/typescript/src/index.ts
+@@ -97,7 +97,7 @@
+ 
+       const output = findTypescriptOutput(ts, parsedOptions, id, emittedFiles);
+ 
+-      return output.code != null ? (output as SourceDescription) : null;
++      return output["code"] != null ? (output as SourceDescription) : null;
+     },
+ 
+     generateBundle(outputOptions) {
+--- a/packages/typescript/src/outputFile.ts
++++ b/packages/typescript/src/outputFile.ts
+@@ -1,6 +1,8 @@
+ import { SourceDescription } from 'rollup';
+ 
+ export interface TypescriptSourceDescription extends Partial<SourceDescription> {
++  code: string;
++  map: string;
+   declarations: string[];
+ }
+ 

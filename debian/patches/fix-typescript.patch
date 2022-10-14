@@ -1,0 +1,18 @@
+Description: ignore typescript ≥ 4.1 errors
+Author: Xavier Guimard <yadd@debian.org>
+Bug-Debian: https://bugs.debian.org/978390
+Forwarded: not-needed
+Last-Update: 2021-01-11
+
+--- a/packages/typescript/src/index.ts
++++ b/packages/typescript/src/index.ts
+@@ -66,7 +66,9 @@
+     },
+ 
+     renderStart(outputOptions) {
++      // @ts-ignore
+       validateSourceMap(this, parsedOptions.options, outputOptions, parsedOptions.autoSetSourceMap);
++      // @ts-ignore
+       validatePaths(ts, this, parsedOptions.options, outputOptions);
+     },
+ 
