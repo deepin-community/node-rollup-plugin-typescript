@@ -1,18 +1,88 @@
 Description: ignore typescript ≥ 4.1 errors
-Author: Xavier Guimard <yadd@debian.org>
+Author: Yadd <yadd@debian.org>
 Bug-Debian: https://bugs.debian.org/978390
 Forwarded: not-needed
-Last-Update: 2021-01-11
+Last-Update: 2022-09-17
 
 --- a/packages/typescript/src/index.ts
 +++ b/packages/typescript/src/index.ts
-@@ -66,7 +66,9 @@
+@@ -107,7 +107,9 @@
      },
  
      renderStart(outputOptions) {
-+      // @ts-ignore
++// @ts-ignore
        validateSourceMap(this, parsedOptions.options, outputOptions, parsedOptions.autoSetSourceMap);
-+      // @ts-ignore
-       validatePaths(ts, this, parsedOptions.options, outputOptions);
++// @ts-ignore
+       validatePaths(this, parsedOptions.options, outputOptions);
      },
+ 
+@@ -208,6 +210,7 @@
+         // https://github.com/rollup/plugins/issues/681
+         if (tsBuildInfoSource) {
+           await emitFile(
++// @ts-ignore
+             outputOptions,
+             outputToFilesystem,
+             this,
+--- a/packages/typescript/src/options/normalize.ts
++++ b/packages/typescript/src/options/normalize.ts
+@@ -46,6 +46,7 @@
+   switch (compilerOptions.module) {
+     case ts.ModuleKind.ES2015:
+     case ts.ModuleKind.ESNext:
++// @ts-ignore
+     case ts.ModuleKind.Node16:
+     case ts.ModuleKind.NodeNext:
+     case ts.ModuleKind.CommonJS:
+--- a/packages/typescript/src/options/tsconfig.ts
++++ b/packages/typescript/src/options/tsconfig.ts
+@@ -107,7 +107,9 @@
+   const moduleKind = parsedConfig.options.module;
+   // Fallback if `parsedConfig.options.moduleResolution` is not set
+   const moduleResolution =
++// @ts-ignore
+     moduleKind === ModuleKind.Node16
++// @ts-ignore
+       ? ModuleResolutionKind.Node16
+       : moduleKind === ModuleKind.NodeNext
+       ? ModuleResolutionKind.NodeNext
+--- a/packages/typescript/src/outputFile.ts
++++ b/packages/typescript/src/outputFile.ts
+@@ -89,7 +89,9 @@
+   const mapFile = emittedFileNames.find(isMapOutputFile);
+ 
+   return {
++// @ts-ignore
+     code: getEmittedFile(codeFile, emittedFiles, tsCache),
++// @ts-ignore
+     map: getEmittedFile(mapFile, emittedFiles, tsCache),
+     declarations: emittedFileNames.filter((name) => name !== codeFile && name !== mapFile)
+   };
+--- a/packages/typescript/src/preflight.ts
++++ b/packages/typescript/src/preflight.ts
+@@ -25,6 +25,7 @@
+   ModuleKind.ES2015,
+   ModuleKind.ES2020,
+   ModuleKind.ESNext,
++// @ts-ignore
+   ModuleKind.Node16,
+   ModuleKind.NodeNext,
+   undef
+--- a/packages/typescript/src/watchProgram.ts
++++ b/packages/typescript/src/watchProgram.ts
+@@ -54,6 +54,7 @@
+   let resolve: DeferredResolve = () => {};
+ 
+   if (timeout) {
++// @ts-ignore
+     promise = Promise.race<boolean | void>([
+       new Promise((r) => setTimeout(r, timeout, true)),
+       new Promise((r) => (resolve = r))
+@@ -185,6 +186,7 @@
+     ) {
+       return moduleNames.map((moduleName, i) => {
+         const mode = containingSourceFile
++// @ts-ignore
+           ? ts.getModeForResolutionAtIndex?.(containingSourceFile, i)
+           : undefined; // eslint-disable-line no-undefined
  

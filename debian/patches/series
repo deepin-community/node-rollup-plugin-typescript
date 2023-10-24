@@ -1,5 +1,5 @@
-allow-to-configure-transpile.patch
+legacy-fix-for-rollup-3.patch
 fix-for-rollup-2.patch
-replace-ava-by-tape.diff
 fix-legacy-test.diff
 fix-typescript.patch
+replace-ava-by-tape.diff

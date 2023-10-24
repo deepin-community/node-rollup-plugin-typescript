@@ -2,6 +2,8 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: rollup-plugin-typescript
 Upstream-Contact: https://github.com/rollup/plugins/issues
 Source: https://github.com/rollup/plugins
+Files-Excluded: packages
+Files-Included: packages/typescript
 
 Files: *
 Copyright: 2015, Oskar Segersvärd and these people listed at https://github.com/rollup/rollup-plugin-typescript/graphs/contributors
@@ -9,10 +11,6 @@ License: Expat
 
 Files: debian/*
 Copyright: 2018, Pirate Praveen <praveen@debian.org>
-License: Expat
-
-Files: debian/build_modules/@types/resolve/*
-Copyright: Microsoft Corporation
 License: Expat
 
 License: Expat

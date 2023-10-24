@@ -1,0 +1,8 @@
+resolve
+rollup
+@rollup/pluginutils
+tape	test
+tslib
+typescript
+@types/node
+@types/resolve

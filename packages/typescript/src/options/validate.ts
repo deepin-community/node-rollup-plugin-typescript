@@ -1,8 +1,8 @@
 import { relative } from 'path';
 
-import { OutputOptions, PluginContext } from 'rollup';
+import type { OutputOptions, PluginContext } from 'rollup';
 
-import { CompilerOptions } from './interfaces';
+import type { CompilerOptions } from './interfaces';
 import { DIRECTORY_PROPS } from './normalize';
 
 /**
@@ -37,56 +37,37 @@ export function validateSourceMap(
  * @param outputOptions Rollup output options.
  */
 export function validatePaths(
-  ts: typeof import('typescript'),
   context: PluginContext,
   compilerOptions: CompilerOptions,
   outputOptions: OutputOptions
 ) {
   if (compilerOptions.out) {
     context.error(
-      `@rollup/plugin-typescript: Deprecated 'out' option is not supported. Use 'outDir' instead.`
+      `@rollup/plugin-typescript: Deprecated Typescript compiler option 'out' is not supported. Use 'outDir' instead.`
     );
   } else if (compilerOptions.outFile) {
     context.error(
-      `@rollup/plugin-typescript: 'outFile' option is not supported. Use 'outDir' instead.`
+      `@rollup/plugin-typescript: Typescript compiler option 'outFile' is not supported. Use 'outDir' instead.`
     );
   }
 
   for (const dirProperty of DIRECTORY_PROPS) {
-    if (compilerOptions[dirProperty]) {
-      if (!outputOptions.dir) {
-        context.error(
-          `@rollup/plugin-typescript: 'dir' must be used when '${dirProperty}' is specified.`
-        );
-      }
-
+    if (compilerOptions[dirProperty] && outputOptions.dir) {
       // Checks if the given path lies within Rollup output dir
       const fromRollupDirToTs = relative(outputOptions.dir, compilerOptions[dirProperty]!);
       if (fromRollupDirToTs.startsWith('..')) {
-        context.error(`@rollup/plugin-typescript: '${dirProperty}' must be located inside 'dir'.`);
+        context.error(
+          `@rollup/plugin-typescript: Path of Typescript compiler option '${dirProperty}' must be located inside Rollup 'dir' option.`
+        );
       }
     }
   }
 
-  const tsBuildInfoPath = ts.getTsBuildInfoEmitOutputFilePath(compilerOptions);
-  if (tsBuildInfoPath && compilerOptions.incremental) {
-    if (!outputOptions.dir) {
-      context.error(
-        `@rollup/plugin-typescript: 'dir' must be used when 'tsBuildInfoFile' or 'incremental' are specified.`
-      );
-    }
-
-    // Checks if the given path lies within Rollup output dir
-    const fromRollupDirToTs = relative(outputOptions.dir, tsBuildInfoPath);
-    if (fromRollupDirToTs.startsWith('..')) {
-      context.error(`@rollup/plugin-typescript: 'tsBuildInfoFile' must be located inside 'dir'.`);
-    }
-  }
-
-  if (compilerOptions.declaration || compilerOptions.declarationMap) {
+  if (compilerOptions.declaration || compilerOptions.declarationMap || compilerOptions.composite) {
     if (DIRECTORY_PROPS.every((dirProperty) => !compilerOptions[dirProperty])) {
       context.error(
-        `@rollup/plugin-typescript: 'outDir' or 'declarationDir' must be specified to generate declaration files.`
+        `@rollup/plugin-typescript: You are using one of Typescript's compiler options 'declaration', 'declarationMap' or 'composite'. ` +
+          `In this case 'outDir' or 'declarationDir' must be specified to generate declaration files.`
       );
     }
   }

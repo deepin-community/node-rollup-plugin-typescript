@@ -5,21 +5,20 @@ Section: javascript
 Testsuite: autopkgtest-pkg-nodejs
 Priority: optional
 Build-Depends: debhelper-compat (= 13)
- , dh-sequence-nodejs (>= 0.9.42~)
+ , dh-sequence-nodejs (>= 0.9.87~)
  , mocha <!nocheck>
- , node-magic-string
+ , node-magic-string (>= 0.27)
  , node-resolve
- , node-rollup-plugin-babel (>= 4.4~) <pkg.node-rollup-plugin-typescript.transpilebabel>
- , node-rollup-plugin-buble (>= 0.19.8~) <pkg.node-rollup-plugin-typescript.transpilebuble>
- , node-rollup-plugin-commonjs (>= 11.1.0) <!nocheck>
+ , node-rollup-plugin-buble
+ , node-rollup-plugin-commonjs <!nocheck>
  , node-rollup-pluginutils (>= 4.0.0+~2.8.2-3~)
  , node-tape <!nocheck>
  , node-tslib
  , node-typescript (>= 4.0~)
  , node-types-estree
- , nodejs (>= 12.20~)
+ , node-types-resolve
  , rollup (>= 2)
-Standards-Version: 4.5.1
+Standards-Version: 4.6.2
 Vcs-Browser: https://salsa.debian.org/js-team/node-rollup-plugin-typescript
 Vcs-Git: https://salsa.debian.org/js-team/node-rollup-plugin-typescript.git
 Homepage: https://github.com/rollup/plugins
@@ -32,7 +31,6 @@ Depends: ${misc:Depends}
  , node-rollup-pluginutils (>= 4.0.0+~2.8.2-3~)
  , node-tslib
  , node-typescript
- , nodejs (>= 10)
 Breaks: rollup (<< 0.68.2+ds~)
 Enhances: rollup
 Recommends: rollup

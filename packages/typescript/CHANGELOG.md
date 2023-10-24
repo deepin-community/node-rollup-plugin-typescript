@@ -1,5 +1,306 @@
 # @rollup/plugin-typescript ChangeLog
 
+## v11.1.5
+
+_2023-10-05_
+
+### Bugfixes
+
+- fix: ensure rollup 4 compatibility [#1595](https://github.com/rollup/plugins/pull/1595)
+
+## v11.1.4
+
+_2023-09-25_
+
+### Bugfixes
+
+- fix: fix sourcemap sourcecontent referencing non-existent files [#1571](https://github.com/rollup/plugins/pull/1571)
+
+## v11.1.3
+
+_2023-08-26_
+
+### Bugfixes
+
+- fix: emit declaration files for type-only source files that are not explicitly included [#1555](https://github.com/rollup/plugins/pull/1555)
+
+## v11.1.2
+
+_2023-06-28_
+
+### Bugfixes
+
+- fix: change the value of isExternalLibraryImport to false if the resolvedModule should be compiled [#1521](https://github.com/rollup/plugins/pull/1521)
+
+## v11.1.1
+
+_2023-05-12_
+
+### Bugfixes
+
+- fix: Allow for using `compilerOptions.moduleResolution` [#1453](https://github.com/rollup/plugins/pull/1453)
+
+## v11.1.0
+
+_2023-04-04_
+
+### Features
+
+- feat: write declaration files in configured directory for `output.file` [#1378](https://github.com/rollup/plugins/pull/1378)
+
+## v11.0.0
+
+_2023-01-06_
+
+### Breaking Changes
+
+- fix: don't resolve filtered files [#1267](https://github.com/rollup/plugins/pull/1267) (#1310)
+
+## v10.0.1
+
+_2022-11-28_
+
+### Bugfixes
+
+- fix: emit assets when watchMode is false. fixes #1354 ([5c88274](https://github.com/rollup/plugins/commit/5c882743475a4480cb82e42253de9290b7329511))
+
+## v10.0.0
+
+_2022-11-27_
+
+### Breaking Changes
+
+- fix: incorrect declarations directory ([a5c90d1](https://github.com/rollup/plugins/commit/a5c90d1032390f9f6160d95c42171aa3014b3d6b))
+
+## v9.0.2
+
+_2022-10-21_
+
+### Updates
+
+- chore: update rollup dependencies ([3038271](https://github.com/rollup/plugins/commit/303827191ede6b2e4eade96c6968ed16a587683f))
+
+## v9.0.1
+
+_2022-10-11_
+
+### Bugfixes
+
+- fix: fix ESM build [#1311](https://github.com/rollup/plugins/pull/1311)
+
+## v9.0.0
+
+_2022-10-10_
+
+### Breaking Changes
+
+- fix: prepare for Rollup 3 [#1282](https://github.com/rollup/plugins/pull/1282)
+
+## v8.5.0
+
+_2022-09-06_
+
+### Features
+
+- feat: support 4.7 nodenext (#1194)
+
+## v8.4.0
+
+_2022-08-23_
+
+### Features
+
+- feat: allow override of forced `noEmit` and `emitDeclarationOnly` compiler options (#1242)
+
+## v8.3.4
+
+_2022-07-28_
+
+### Bugfixes
+
+- fix: fix declaration file generation for single file outputs (#1201)
+
+## v8.3.3
+
+_2022-06-10_
+
+### Bugfixes
+
+- fix: allow tslib peerDependency to be optional for npm and pnpm (#1191)
+
+## v8.3.2
+
+_2022-04-13_
+
+### Bugfixes
+
+- fix: Drive letter casing on win32 platforms. fixes #1133 (#1134)
+
+## v8.3.1
+
+_2022-02-23_
+
+### Bugfixes
+
+- fix: allow explicity compilerOptions (#1045)
+
+### Updates
+
+- docs: readme copy/paste mistake (#1086)
+
+## v8.3.0
+
+_2021-10-15_
+
+### Features
+
+- feat: add resolve options (#1015)
+
+## v8.2.5
+
+_2021-07-30_
+
+### Bugfixes
+
+- fix: incremental typescript cache (#963)
+
+## v8.2.4
+
+_2021-07-29_
+
+### Updates
+
+- docs: declaration file output to same directory. fixes #934 (702c855)
+
+## v8.2.3
+
+_2021-07-15_
+
+### Bugfixes
+
+- fix: restart watch program on each build (#861)
+
+### Updates
+
+- docs: add link for @rollup/plugin-commonjs (#889)
+
+## v8.2.2
+
+_2021-07-15_
+
+### Bugfixes
+
+- fix: restart watch program on each build (#861)
+
+### Updates
+
+- docs: add link for @rollup/plugin-commonjs (#889)
+
+## v8.2.1
+
+_2021-03-26_
+
+### Bugfixes
+
+- fix: bump TypeScript version (#818)
+- fix: update readme and peerDeps version (#830)
+
+## v8.2.0
+
+_2021-02-14_
+
+### Features
+
+- feat: error when no tsconfig and no rootDir (#794)
+- feat: better error when tslib is not installed (#793)
+- feat: warn when compilerOptions.module is not esnext (#788)
+
+### Updates
+
+- test: move declaration tests, use typescript (#791)
+- test: fix TypeScript src-dir test (#789)
+
+## v8.1.1
+
+_2021-01-29_
+
+### Bugfixes
+
+- fix: fix plugin type declarations (#647)
+- fix: only emit tsbuildinfo file when there is something to emit (#771)
+
+## v8.1.0
+
+_2020-12-14_
+
+### Features
+
+- feat: support multiple output targets with declarations (#687)
+
+### Updates
+
+- chore: fix TypeScript warnings (#673)
+- test: code in src sub-directory (#682)
+- chore: use TypeScript 4 (#674)
+
+## v8.0.0
+
+_2020-11-30_
+
+### Breaking Changes
+
+- fix: pick up new files in watch mode (#657)
+
+### Bugfixes
+
+- fix: add missing imports (#633)
+- fix: normalize returned module ids (#653)
+
+### Features
+
+- feat: Implement cached incremental code (#535)
+
+### Updates
+
+- docs: fix minor markdown syntax in transformers-section (#624)
+
+## v7.0.0
+
+_2020-11-30_
+
+### Breaking Changes
+
+- fix: pick up new files in watch mode (#657)
+
+### Bugfixes
+
+- fix: add missing imports (#633)
+- fix: normalize returned module ids (#653)
+
+### Features
+
+- feat: Implement cached incremental code (#535)
+
+### Updates
+
+- docs: fix minor markdown syntax in transformers-section (#624)
+
+## v6.1.0
+
+_2020-10-27_
+
+### Bugfixes
+
+- fix: add composite to validation checks (#618)
+
+### Features
+
+- feat: Add CustomTransformers support (#280)
+
+### Updates
+
+- docs: More informative error messages (#619)
+
 ## v6.0.0
 
 _2020-09-09_

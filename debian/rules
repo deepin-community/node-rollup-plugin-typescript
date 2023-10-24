@@ -1,37 +1,38 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-ifneq ($(filter pkg.node-rollup-plugin-typescript.transpilebabel,$(DEB_BUILD_PROFILES)),)
-TRANSPILE_PROF?=babel7
-BABEL_PRESET?=env
-export BABEL_PRESET
-else ifneq ($(filter pkg.node-rollup-plugin-typescript.transpilebuble,$(DEB_BUILD_PROFILES)),)
-TRANSPILE_PROF?=buble
-else ifneq ($(filter pkg.node-rollup-plugin-typescript.transpilenone,$(DEB_BUILD_PROFILES)),)
-TRANSPILE_PROF?=none
-else
-TRANSPILE_PROF?=none
-endif
-TRANSPILE?=$(TRANSPILE_PROF)
-export TRANSPILE
-
-
 %:
 	dh $@
 
 override_dh_auto_build:
 	dh_auto_build --buildsystem=nodejs
 	# Step 1: build a temporary @rollup/plugin-typescript
+	# 1.1 : ES
 	cd packages/typescript && \
-		ln -s ../../../node_modules/@types/resolve node_modules/ && \
 		mkdir dist && \
-		NODE_PATH=node_modules tsc --module CommonJS --esModuleInterop src/index.ts
+		NODE_PATH=node_modules tsc --module esnext --moduleResolution node --esModuleInterop --target es2015 src/index.ts
 	cd packages/typescript/src && \
 		tar cf - `find . -name '*.js' -type f` |(cd ../dist; tar xf -) && \
 		find . -name '*.js' -type f -delete
-	mkdir -p packages/typescript/node_modules/@rollup
-	mv packages/typescript/dist packages/typescript/node_modules/@rollup/plugin-typescript
-	cp packages/typescript/package.json packages/typescript/node_modules/@rollup/plugin-typescript/
+	mkdir -p node_modules/@rollup/plugin-typescript/dist
+	mv packages/typescript/dist node_modules/@rollup/plugin-typescript/dist/es
+	for f in `find node_modules/@rollup/plugin-typescript/dist/es -name '*.js'`; do \
+		ln -s `basename $$f` $${f%%.js}; \
+	done
+	## 1.2 : CJS
+	#cd packages/typescript && \
+	#	mkdir dist && \
+	#	NODE_PATH=node_modules tsc --module commonjs --moduleResolution node --esModuleInterop src/index.ts
+	#cd packages/typescript/src && \
+	#	tar cf - `find . -name '*.js' -type f` |(cd ../dist; tar xf -) && \
+	#	find . -name '*.js' -type f -delete
+	#mkdir -p node_modules/@rollup/plugin-typescript/dist
+	#mv packages/typescript/dist node_modules/@rollup/plugin-typescript/dist/cjs
+	perl -pe 's/("name")/"type":"module",$$1/' <packages/typescript/package.json \
+		> node_modules/@rollup/plugin-typescript/package.json
 	# Step 2: upstream build
 	cd packages/typescript && rollup -c
-	rm -rf packages/typescript/node_modules/@rollup/plugin-typescript/
+	rm -rf node_modules/@rollup/plugin-typescript/
+
+override_dh_installchangelogs:
+	dh_installchangelogs packages/typescript/CHANGELOG.md

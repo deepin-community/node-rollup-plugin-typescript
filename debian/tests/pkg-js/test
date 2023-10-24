@@ -1,2 +1,7 @@
+if test "$AUTOPKGTEST_TMP" != ""; then
+	cp -a /usr/share/nodejs/@rollup/plugin-typescript/dist packages/typescript/ || true
+#	patch -p1 < debian/patches/drop-one-test-for-autopkgtest.patch
+fi
 cd packages/typescript
 tape test/test.js
+tape test/test.mjs

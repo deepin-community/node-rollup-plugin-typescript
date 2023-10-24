@@ -4,3 +4,7 @@ packages/*/dist/
 packages/*/node_modules/
 packages/typescript/src/*.js
 packages/typescript/src/*/*.js
+packages/typescript/test/fixtures/*/.rollup.cache/
+packages/typescript/test/fixtures/watch/dist/
+packages/typescript/test/fixtures/watch/main.ts
+packages/typescript/test/fixtures/watch/new.ts
