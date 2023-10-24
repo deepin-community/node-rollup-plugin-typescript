@@ -1,8 +1,7 @@
-import { createFilter } from '@rollup/pluginutils';
-import * as defaultTs from 'typescript';
+import defaultTs from 'typescript';
 
-import { RollupTypescriptOptions, PartialCompilerOptions } from '../../types';
-import getTsLibPath from '../tslib';
+import type { RollupTypescriptOptions, PartialCompilerOptions } from '../../types';
+import { getTsLibPath } from '../tslib';
 
 /**
  * Separate the Rollup plugin options from the Typescript compiler options,
@@ -14,16 +13,34 @@ import getTsLibPath from '../tslib';
  * - `typescript`: Instance of Typescript library (possibly custom).
  * - `tslib`: ESM code from the tslib helper library (possibly custom).
  */
-export default function getPluginOptions(options: RollupTypescriptOptions) {
-  const { include, exclude, tsconfig, typescript, tslib, ...compilerOptions } = options;
-
-  const filter = createFilter(include || ['*.ts+(|x)', '**/*.ts+(|x)'], exclude);
+export const getPluginOptions = (options: RollupTypescriptOptions) => {
+  const {
+    cacheDir,
+    exclude,
+    include,
+    filterRoot,
+    noForceEmit,
+    transformers,
+    tsconfig,
+    tslib,
+    typescript,
+    outputToFilesystem,
+    compilerOptions,
+    // previously was compilerOptions
+    ...extra
+  } = options;
 
   return {
-    filter,
+    cacheDir,
+    include,
+    exclude,
+    filterRoot,
+    noForceEmit: noForceEmit || false,
     tsconfig,
-    compilerOptions: compilerOptions as PartialCompilerOptions,
+    compilerOptions: { ...extra, ...compilerOptions } as PartialCompilerOptions,
     typescript: typescript || defaultTs,
-    tslib: tslib || getTsLibPath()
+    tslib: tslib || getTsLibPath(),
+    transformers,
+    outputToFilesystem
   };
-}
+};

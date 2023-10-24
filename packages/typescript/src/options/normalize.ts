@@ -1,7 +1,9 @@
 /* eslint-disable no-param-reassign */
 import { resolve } from 'path';
 
-import { CompilerOptions, PartialCompilerOptions } from './interfaces';
+import type typescript from 'typescript';
+
+import type { CompilerOptions, PartialCompilerOptions } from './interfaces';
 
 export const DIRECTORY_PROPS = ['outDir', 'declarationDir'] as const;
 
@@ -25,10 +27,7 @@ export function makePathsAbsolute(compilerOptions: PartialCompilerOptions, relat
  * @param compilerOptions Compiler options to _mutate_.
  * @returns True if the source map compiler option was not initially set.
  */
-export function normalizeCompilerOptions(
-  ts: typeof import('typescript'),
-  compilerOptions: CompilerOptions
-) {
+export function normalizeCompilerOptions(ts: typeof typescript, compilerOptions: CompilerOptions) {
   let autoSetSourceMap = false;
   if (compilerOptions.inlineSourceMap) {
     // Force separate source map files for Rollup to work with.
@@ -47,6 +46,8 @@ export function normalizeCompilerOptions(
   switch (compilerOptions.module) {
     case ts.ModuleKind.ES2015:
     case ts.ModuleKind.ESNext:
+    case ts.ModuleKind.Node16:
+    case ts.ModuleKind.NodeNext:
     case ts.ModuleKind.CommonJS:
       // OK module type
       return autoSetSourceMap;
@@ -57,7 +58,7 @@ export function normalizeCompilerOptions(
       // Invalid module type
       const moduleType = ts.ModuleKind[compilerOptions.module];
       throw new Error(
-        `@rollup/plugin-typescript: The module kind should be 'ES2015' or 'ESNext, found: '${moduleType}'`
+        `@rollup/plugin-typescript: The module kind should be 'ES2015', 'ESNext', 'node16' or 'nodenext', found: '${moduleType}'`
       );
     }
     default:

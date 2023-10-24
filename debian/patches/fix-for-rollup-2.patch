@@ -5,19 +5,19 @@ Last-Update: 2020-10-04
 
 --- a/packages/typescript/src/index.ts
 +++ b/packages/typescript/src/index.ts
-@@ -97,7 +97,7 @@
+@@ -160,7 +160,7 @@
  
-       const output = findTypescriptOutput(ts, parsedOptions, id, emittedFiles);
+       const output = findTypescriptOutput(ts, parsedOptions, id, emittedFiles, tsCache);
  
 -      return output.code != null ? (output as SourceDescription) : null;
 +      return output["code"] != null ? (output as SourceDescription) : null;
      },
  
-     generateBundle(outputOptions) {
+     async generateBundle(outputOptions) {
 --- a/packages/typescript/src/outputFile.ts
 +++ b/packages/typescript/src/outputFile.ts
-@@ -1,6 +1,8 @@
- import { SourceDescription } from 'rollup';
+@@ -10,6 +10,8 @@
+ import type TSCache from './tscache';
  
  export interface TypescriptSourceDescription extends Partial<SourceDescription> {
 +  code: string;

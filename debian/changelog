@@ -1,3 +1,142 @@
+node-rollup-plugin-typescript (11.1.5~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 11.1.5~ds+~1.0.1
+  * Refresh patches
+  * Update build (Closes: #1054176)
+
+ -- Yadd <yadd@debian.org>  Thu, 19 Oct 2023 18:30:39 +0400
+
+node-rollup-plugin-typescript (11.1.2~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 11.1.2~ds+~1.0.1
+  * Update patches
+
+ -- Yadd <yadd@debian.org>  Sun, 16 Jul 2023 12:25:05 +0400
+
+node-rollup-plugin-typescript (11.0.0~ds+~1.0.1-2) unstable; urgency=medium
+
+  * Team upload
+  * Back to unstable
+
+ -- Yadd <yadd@debian.org>  Sun, 16 Jul 2023 09:28:37 +0400
+
+node-rollup-plugin-typescript (11.0.0~ds+~1.0.1-1) experimental; urgency=medium
+
+  * Team upload
+  * Update standards version to 4.6.2, no changes needed.
+  * New upstream version 11.0.0~ds+~1.0.1
+  * Refresh patches
+  * Require magic-string >= 0.27
+
+ -- Yadd <yadd@debian.org>  Mon, 03 Apr 2023 17:14:00 +0400
+
+node-rollup-plugin-typescript (10.0.1~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 10.0.1~ds+~1.0.1
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Sun, 04 Dec 2022 20:52:43 +0100
+
+node-rollup-plugin-typescript (9.0.2~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 9.0.2~ds+~1.0.1
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Sat, 29 Oct 2022 09:01:39 +0200
+
+node-rollup-plugin-typescript (9.0.1~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 9.0.1~ds+~1.0.1 (works with tsc 4.8.4)
+  * Update build
+  * Update test and related patch
+  * Add fix to compile legacy plugin with rollup 3
+
+ -- Yadd <yadd@debian.org>  Thu, 13 Oct 2022 14:23:47 +0200
+
+node-rollup-plugin-typescript (8.5.0~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * Update doc
+  * New upstream version 8.5.0~ds+~1.0.1
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Sat, 17 Sep 2022 17:11:37 +0200
+
+node-rollup-plugin-typescript (8.4.0~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 8.4.0~ds+~1.0.1
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Fri, 26 Aug 2022 15:50:34 +0200
+
+node-rollup-plugin-typescript (8.3.4~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * New upstream version 8.3.4~ds+~1.0.1
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Sat, 30 Jul 2022 12:17:18 +0200
+
+node-rollup-plugin-typescript (8.3.3~ds+~1.0.1-1) unstable; urgency=medium
+
+  * Team upload
+  * Declare compliance with policy 4.6.1
+  * New upstream version 8.3.3~ds+~1.0.1
+
+ -- Yadd <yadd@debian.org>  Tue, 28 Jun 2022 10:58:13 +0200
+
+node-rollup-plugin-typescript (8.3.2~ds+~1.0.1-2) unstable; urgency=medium
+
+  * Team upload
+  * Fix autopkgtest
+  * Back to unstable
+
+ -- Yadd <yadd@debian.org>  Thu, 28 Apr 2022 09:36:27 +0200
+
+node-rollup-plugin-typescript (8.3.2~ds+~1.0.1-1) experimental; urgency=medium
+
+  * Team upload
+  * Revert "Drop legacy rollup-plugin-typescript"
+  * New upstream version 8.3.2~ds+~1.0.1
+
+ -- Yadd <yadd@debian.org>  Tue, 26 Apr 2022 15:24:41 +0200
+
+node-rollup-plugin-typescript (8.3.1~ds-1) experimental; urgency=medium
+
+  * Team upload
+  * New upstream version 8.3.1~ds
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Thu, 24 Feb 2022 08:50:39 +0100
+
+node-rollup-plugin-typescript (8.3.0~ds-1) experimental; urgency=medium
+
+  * Team upload
+  * Drop legacy rollup-plugin-typescript
+  * Exclude other @rollup/plugin-* from import and drop lintian overrides
+  * New upstream version 8.3.0~ds
+  * Replace embedded @types/resolve by dependency to node-types-resolve
+  * Refresh patches
+
+ -- Yadd <yadd@debian.org>  Tue, 14 Dec 2021 11:34:25 +0100
+
+node-rollup-plugin-typescript (6.0.0+~1.0.1-4) unstable; urgency=medium
+
+  * Team upload
+  * Fix GitHub tags regex
+  * Update standards version to 4.6.0, no changes needed.
+  * Fix filenamemangle
+  * Drop nodejs dependency
+  * Update fix-typescript.patch (fixes build)
+
+ -- Yadd <yadd@debian.org>  Tue, 14 Dec 2021 09:11:43 +0100
+
 node-rollup-plugin-typescript (6.0.0+~1.0.1-3) unstable; urgency=medium
 
   * Team upload

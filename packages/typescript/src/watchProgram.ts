@@ -1,14 +1,26 @@
-import { PluginContext } from 'rollup';
+import type { PluginContext } from 'rollup';
+import typescript from 'typescript';
+import type {
+  Diagnostic,
+  EmitAndSemanticDiagnosticsBuilderProgram,
+  ParsedCommandLine,
+  WatchCompilerHostOfFilesAndCompilerOptions,
+  WatchStatusReporter,
+  WriteFileCallback
+} from 'typescript';
 
-import { DiagnosticCategory } from 'typescript';
+import type { CustomTransformerFactories } from '../types';
 
 import { buildDiagnosticReporter } from './diagnostics/emit';
-import { DiagnosticsHost } from './diagnostics/host';
-import { Resolver } from './moduleResolution';
+import type { DiagnosticsHost } from './diagnostics/host';
+import type { Resolver } from './moduleResolution';
+import { mergeTransformers } from './customTransformers';
 
-type BuilderProgram = import('typescript').EmitAndSemanticDiagnosticsBuilderProgram;
+const { DiagnosticCategory } = typescript;
+type BuilderProgram = EmitAndSemanticDiagnosticsBuilderProgram;
 
 // @see https://github.com/microsoft/TypeScript/blob/master/src/compiler/diagnosticMessages.json
+// eslint-disable-next-line no-shadow
 enum DiagnosticCode {
   FILE_CHANGE_DETECTED = 6032,
   FOUND_1_ERROR_WATCHING_FOR_FILE_CHANGES = 6193,
@@ -19,16 +31,18 @@ interface CreateProgramOptions {
   /** Formatting host used to get some system functions and emit type errors. */
   formatHost: DiagnosticsHost;
   /** Parsed Typescript compiler options. */
-  parsedOptions: import('typescript').ParsedCommandLine;
+  parsedOptions: ParsedCommandLine;
   /** Callback to save compiled files in memory. */
-  writeFile: import('typescript').WriteFileCallback;
+  writeFile: WriteFileCallback;
   /** Callback for the Typescript status reporter. */
-  status: import('typescript').WatchStatusReporter;
+  status: WatchStatusReporter;
   /** Function to resolve a module location */
   resolveModule: Resolver;
+  /** Custom TypeScript transformers */
+  transformers?: CustomTransformerFactories;
 }
 
-type DeferredResolve = ((value?: boolean) => void) | (() => void);
+type DeferredResolve = ((value: boolean | PromiseLike<boolean>) => void) | (() => void);
 
 interface Deferred {
   promise: Promise<boolean | void>;
@@ -40,7 +54,7 @@ function createDeferred(timeout?: number): Deferred {
   let resolve: DeferredResolve = () => {};
 
   if (timeout) {
-    promise = Promise.race<Promise<boolean>>([
+    promise = Promise.race<boolean | void>([
       new Promise((r) => setTimeout(r, timeout, true)),
       new Promise((r) => (resolve = r))
     ]);
@@ -64,7 +78,7 @@ export class WatchProgramHelper {
     this._finishDeferred = createDeferred();
   }
 
-  handleStatus(diagnostic: import('typescript').Diagnostic) {
+  handleStatus(diagnostic: Diagnostic) {
     // Fullfil deferred promises by Typescript diagnostic message codes.
     if (diagnostic.category === DiagnosticCategory.Message) {
       switch (diagnostic.code) {
@@ -91,7 +105,7 @@ export class WatchProgramHelper {
 
   resolveFinish() {
     if (this._finishDeferred) {
-      this._finishDeferred.resolve();
+      this._finishDeferred.resolve(false);
       this._finishDeferred = null;
     }
   }
@@ -118,10 +132,17 @@ export class WatchProgramHelper {
  * @see https://github.com/Microsoft/TypeScript/wiki/Using-the-Compiler-API
  */
 function createWatchHost(
-  ts: typeof import('typescript'),
+  ts: typeof typescript,
   context: PluginContext,
-  { formatHost, parsedOptions, writeFile, status, resolveModule }: CreateProgramOptions
-): import('typescript').WatchCompilerHostOfFilesAndCompilerOptions<BuilderProgram> {
+  {
+    formatHost,
+    parsedOptions,
+    writeFile,
+    status,
+    resolveModule,
+    transformers
+  }: CreateProgramOptions
+): WatchCompilerHostOfFilesAndCompilerOptions<BuilderProgram> {
   const createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
 
   const baseHost = ts.createWatchCompilerHost(
@@ -141,18 +162,40 @@ function createWatchHost(
       const origEmit = program.emit;
       // eslint-disable-next-line no-param-reassign
       program.emit = (targetSourceFile, _, ...args) =>
-        origEmit(targetSourceFile, writeFile, ...args);
+        origEmit(
+          targetSourceFile,
+          writeFile,
+          // cancellationToken
+          args[0],
+          // emitOnlyDtsFiles
+          args[1],
+          mergeTransformers(program, transformers, args[2] as CustomTransformerFactories)
+        );
+
       return baseHost.afterProgramCreate!(program);
     },
     /** Add helper to deal with module resolution */
-    resolveModuleNames(moduleNames, containingFile) {
-      return moduleNames.map((moduleName) => resolveModule(moduleName, containingFile));
+    resolveModuleNames(
+      moduleNames,
+      containingFile,
+      _reusedNames,
+      redirectedReference,
+      _optionsOnlyWithNewerTsVersions,
+      containingSourceFile
+    ) {
+      return moduleNames.map((moduleName, i) => {
+        const mode = containingSourceFile
+          ? ts.getModeForResolutionAtIndex?.(containingSourceFile, i)
+          : undefined; // eslint-disable-line no-undefined
+
+        return resolveModule(moduleName, containingFile, redirectedReference, mode);
+      });
     }
   };
 }
 
 export default function createWatchProgram(
-  ts: typeof import('typescript'),
+  ts: typeof typescript,
   context: PluginContext,
   options: CreateProgramOptions
 ) {

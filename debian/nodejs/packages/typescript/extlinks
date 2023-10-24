@@ -1,7 +1,0 @@
-magic-string
-rollup
-tslib
-typescript
-@rollup/pluginutils
-@types/estree
-@types/node

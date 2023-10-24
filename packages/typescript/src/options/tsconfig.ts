@@ -1,19 +1,47 @@
 import { readFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 
-import { PluginContext } from 'rollup';
+import type { PluginContext } from 'rollup';
+import typescript from 'typescript';
+import type {
+  Diagnostic,
+  ExtendedConfigCacheEntry,
+  MapLike,
+  ParsedCommandLine,
+  ProjectReference,
+  TypeAcquisition,
+  WatchDirectoryFlags,
+  WatchOptions
+} from 'typescript';
 
-import { RollupTypescriptOptions } from '../../types';
+import type { RollupTypescriptOptions } from '../../types';
 import diagnosticToWarning from '../diagnostics/toWarning';
 
+import type { CompilerOptions, EnumCompilerOptions, PartialCompilerOptions } from './interfaces';
 import {
-  CompilerOptions,
   DEFAULT_COMPILER_OPTIONS,
-  EnumCompilerOptions,
   FORCED_COMPILER_OPTIONS,
-  PartialCompilerOptions
+  OVERRIDABLE_EMIT_COMPILER_OPTIONS
 } from './interfaces';
 import { normalizeCompilerOptions, makePathsAbsolute } from './normalize';
+
+const { ModuleKind, ModuleResolutionKind } = typescript;
+export interface TypeScriptConfig {
+  autoSetSourceMap: boolean;
+  options: CompilerOptions;
+  typeAcquisition?: TypeAcquisition | undefined;
+  fileNames: string[];
+  projectReferences?: readonly ProjectReference[] | undefined;
+  watchOptions?: WatchOptions | undefined;
+  raw?: any;
+  errors: Diagnostic[];
+  wildcardDirectories?: MapLike<WatchDirectoryFlags> | undefined;
+  compileOnSave?: boolean | undefined;
+}
+
+function makeForcedCompilerOptions(noForceEmit: boolean) {
+  return { ...FORCED_COMPILER_OPTIONS, ...(noForceEmit ? {} : OVERRIDABLE_EMIT_COMPILER_OPTIONS) };
+}
 
 /**
  * Finds the path to the tsconfig file relative to the current working directory.
@@ -21,7 +49,7 @@ import { normalizeCompilerOptions, makePathsAbsolute } from './normalize';
  * If `false` is passed, then a null path is returned.
  * @returns The absolute path, or null if the file does not exist.
  */
-function getTsConfigPath(ts: typeof import('typescript'), relativePath?: string | false) {
+function getTsConfigPath(ts: typeof typescript, relativePath?: string | false) {
   if (relativePath === false) return null;
 
   // Resolve path to file. `tsConfigOption` defaults to 'tsconfig.json'.
@@ -45,7 +73,7 @@ function getTsConfigPath(ts: typeof import('typescript'), relativePath?: string 
  * @param explicitPath If true, the path was set by the plugin user.
  * If false, the path was computed automatically.
  */
-function readTsConfigFile(ts: typeof import('typescript'), tsConfigPath: string) {
+function readTsConfigFile(ts: typeof typescript, tsConfigPath: string) {
   const { config, error } = ts.readConfigFile(tsConfigPath, (path) => readFileSync(path, 'utf8'));
   if (error) {
     throw Object.assign(Error(), diagnosticToWarning(ts, null, error));
@@ -71,9 +99,30 @@ function containsEnumOptions(
   return enums.some((prop) => prop in compilerOptions && typeof compilerOptions[prop] === 'number');
 }
 
-const configCache = new Map() as import('typescript').Map<
-  import('typescript').ExtendedConfigCacheEntry
->;
+/**
+ * The module resolution kind is a function of the resolved `compilerOptions.module`.
+ * This needs to be set explicitly for `resolveModuleName` to select the correct resolution method
+ */
+function setModuleResolutionKind(parsedConfig: ParsedCommandLine): ParsedCommandLine {
+  const moduleKind = parsedConfig.options.module;
+  // Fallback if `parsedConfig.options.moduleResolution` is not set
+  const moduleResolution =
+    moduleKind === ModuleKind.Node16
+      ? ModuleResolutionKind.Node16
+      : moduleKind === ModuleKind.NodeNext
+      ? ModuleResolutionKind.NodeNext
+      : ModuleResolutionKind.NodeJs;
+
+  return {
+    ...parsedConfig,
+    options: {
+      moduleResolution,
+      ...parsedConfig.options
+    }
+  };
+}
+
+const configCache = new Map() as typescript.Map<ExtendedConfigCacheEntry>;
 
 /**
  * Parse the Typescript config to use with the plugin.
@@ -87,14 +136,15 @@ const configCache = new Map() as import('typescript').Map<
  * - `errors`: Any errors from parsing the config file.
  */
 export function parseTypescriptConfig(
-  ts: typeof import('typescript'),
+  ts: typeof typescript,
   tsconfig: RollupTypescriptOptions['tsconfig'],
-  compilerOptions: PartialCompilerOptions
-) {
+  compilerOptions: PartialCompilerOptions,
+  noForceEmit: boolean
+): TypeScriptConfig {
   /* eslint-disable no-undefined */
   const cwd = process.cwd();
   makePathsAbsolute(compilerOptions, cwd);
-  let parsedConfig: import('typescript').ParsedCommandLine;
+  let parsedConfig: ParsedCommandLine;
 
   // Resolve path to file. If file is not found, pass undefined path to `parseJsonConfigFileContent`.
   // eslint-disable-next-line no-undefined
@@ -105,39 +155,43 @@ export function parseTypescriptConfig(
   // If compilerOptions has enums, it represents an CompilerOptions object instead of parsed JSON.
   // This determines where the data is passed to the parser.
   if (containsEnumOptions(compilerOptions)) {
-    parsedConfig = ts.parseJsonConfigFileContent(
-      {
-        ...tsConfigFile,
-        compilerOptions: {
-          ...DEFAULT_COMPILER_OPTIONS,
-          ...tsConfigFile.compilerOptions
-        }
-      },
-      ts.sys,
-      basePath,
-      { ...compilerOptions, ...FORCED_COMPILER_OPTIONS },
-      tsConfigPath,
-      undefined,
-      undefined,
-      configCache
+    parsedConfig = setModuleResolutionKind(
+      ts.parseJsonConfigFileContent(
+        {
+          ...tsConfigFile,
+          compilerOptions: {
+            ...DEFAULT_COMPILER_OPTIONS,
+            ...tsConfigFile.compilerOptions
+          }
+        },
+        ts.sys,
+        basePath,
+        { ...compilerOptions, ...makeForcedCompilerOptions(noForceEmit) },
+        tsConfigPath,
+        undefined,
+        undefined,
+        configCache
+      )
     );
   } else {
-    parsedConfig = ts.parseJsonConfigFileContent(
-      {
-        ...tsConfigFile,
-        compilerOptions: {
-          ...DEFAULT_COMPILER_OPTIONS,
-          ...tsConfigFile.compilerOptions,
-          ...compilerOptions
-        }
-      },
-      ts.sys,
-      basePath,
-      FORCED_COMPILER_OPTIONS,
-      tsConfigPath,
-      undefined,
-      undefined,
-      configCache
+    parsedConfig = setModuleResolutionKind(
+      ts.parseJsonConfigFileContent(
+        {
+          ...tsConfigFile,
+          compilerOptions: {
+            ...DEFAULT_COMPILER_OPTIONS,
+            ...tsConfigFile.compilerOptions,
+            ...compilerOptions
+          }
+        },
+        ts.sys,
+        basePath,
+        makeForcedCompilerOptions(noForceEmit),
+        tsConfigPath,
+        undefined,
+        undefined,
+        configCache
+      )
     );
   }
 
@@ -154,9 +208,9 @@ export function parseTypescriptConfig(
  * display all of them as warnings then emit an error.
  */
 export function emitParsedOptionsErrors(
-  ts: typeof import('typescript'),
+  ts: typeof typescript,
   context: PluginContext,
-  parsedOptions: import('typescript').ParsedCommandLine
+  parsedOptions: ParsedCommandLine
 ) {
   if (parsedOptions.errors.length > 0) {
     parsedOptions.errors.forEach((error) => context.warn(diagnosticToWarning(ts, null, error)));

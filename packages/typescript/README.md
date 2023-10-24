@@ -13,7 +13,7 @@
 
 ## Requirements
 
-This plugin requires an [LTS](https://github.com/nodejs/Release) Node version (v8.0.0+) and Rollup v1.20.0+. This plugin also requires at least [TypeScript 3.4](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html).
+This plugin requires an [LTS](https://github.com/nodejs/Release) Node version (v14.0.0+) and Rollup v2.14.0+. This plugin also requires at least [TypeScript 3.7](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html).
 
 ## Install
 
@@ -41,9 +41,9 @@ export default {
   input: 'src/index.ts',
   output: {
     dir: 'output',
-    format: 'cjs',
+    format: 'cjs'
   },
-  plugins: [typescript()],
+  plugins: [typescript()]
 };
 ```
 
@@ -58,7 +58,7 @@ The plugin loads any [`compilerOptions`](http://www.typescriptlang.org/docs/hand
 export default {
   input: './main.ts',
   plugins: [
-      typescript({lib: ["es5", "es6", "dom"], target: "es5"})
+      typescript({ compilerOptions: {lib: ["es5", "es6", "dom"], target: "es5"}})
   ]
 }
 ```
@@ -70,14 +70,25 @@ The following options are unique to `rollup-plugin-typescript`:
 Type: `String` | `Array[...String]`<br>
 Default: `null`
 
-A [minimatch pattern](https://github.com/isaacs/minimatch), or array of patterns, which specifies the files in the build the plugin should _ignore_. By default no files are ignored.
+A [picomatch pattern](https://github.com/micromatch/picomatch), or array of patterns, which specifies the files in the build the plugin should _ignore_. By default no files are ignored.
 
 ### `include`
 
 Type: `String` | `Array[...String]`<br>
 Default: `null`
 
-A [minimatch pattern](https://github.com/isaacs/minimatch), or array of patterns, which specifies the files in the build the plugin should operate on. By default all `.ts` and `.tsx` files are targeted.
+A [picomatch pattern](https://github.com/micromatch/picomatch), or array of patterns, which specifies the files in the build the plugin should operate on. By default all `.ts` and `.tsx` files are targeted.
+
+### `filterRoot`
+
+Type: `String` | `Boolean`<br>
+Default: `rootDir` ?? `tsConfig.compilerOptions.rootDir` ?? `process.cwd()`
+
+Optionally resolves the include and exclude patterns against a directory other than `process.cwd()`. If a String is specified, then the value will be used as the base directory. Relative paths will be resolved against `process.cwd()` first. If `false`, then the patterns will not be resolved against any directory.
+
+By default, patterns resolve against the rootDir set in your TS config file.
+
+This can fix plugin errors when parsing files outside the current working directory (process.cwd()).
 
 ### `tsconfig`
 
@@ -95,7 +106,7 @@ Overrides the TypeScript module used for transpilation.
 
 ```js
 typescript({
-  typescript: require('some-fork-of-typescript'),
+  typescript: require('some-fork-of-typescript')
 });
 ```
 
@@ -108,9 +119,109 @@ Overrides the injected TypeScript helpers with a custom version.
 
 ```js
 typescript({
-  tslib: require.resolve('some-fork-of-tslib'),
+  tslib: require.resolve('some-fork-of-tslib')
 });
 ```
+
+### `transformers`
+
+Type: `{ [before | after | afterDeclarations]: TransformerFactory[] }`<br>
+Default: `undefined`
+
+Allows registration of TypeScript custom transformers at any of the supported stages:
+
+- **before**: transformers will execute before the TypeScript's own transformers on raw TypeScript files
+- **after**: transformers will execute after the TypeScript transformers on transpiled code
+- **afterDeclarations**: transformers will execute after declaration file generation allowing to modify existing declaration files
+
+Supported transformer factories:
+
+- all **built-in** TypeScript custom transformer factories:
+
+  - `import('typescript').TransformerFactory` annotated **TransformerFactory** bellow
+  - `import('typescript').CustomTransformerFactory` annotated **CustomTransformerFactory** bellow
+
+- **ProgramTransformerFactory** represents a transformer factory allowing the resulting transformer to grab a reference to the **Program** instance
+
+  ```js
+  {
+    type: 'program',
+    factory: (program: Program) => TransformerFactory | CustomTransformerFactory
+  }
+  ```
+
+- **TypeCheckerTransformerFactory** represents a transformer factory allowing the resulting transformer to grab a reference to the **TypeChecker** instance
+  ```js
+  {
+    type: 'typeChecker',
+    factory: (typeChecker: TypeChecker) => TransformerFactory | CustomTransformerFactory
+  }
+  ```
+
+```js
+typescript({
+  transformers: {
+    before: [
+      {
+        // Allow the transformer to get a Program reference in it's factory
+        type: 'program',
+        factory: (program) => {
+          return ProgramRequiringTransformerFactory(program);
+        }
+      },
+      {
+        type: 'typeChecker',
+        factory: (typeChecker) => {
+          // Allow the transformer to get a TypeChecker reference in it's factory
+          return TypeCheckerRequiringTransformerFactory(typeChecker);
+        }
+      }
+    ],
+    after: [
+      // You can use normal transformers directly
+      require('custom-transformer-based-on-Context')
+    ],
+    afterDeclarations: [
+      // Or even define in place
+      function fixDeclarationFactory(context) {
+        return function fixDeclaration(source) {
+          function visitor(node) {
+            // Do real work here
+
+            return ts.visitEachChild(node, visitor, context);
+          }
+
+          return ts.visitEachChild(source, visitor, context);
+        };
+      }
+    ]
+  }
+});
+```
+
+### `cacheDir`
+
+Type: `String`<br>
+Default: _.rollup.cache_
+
+When compiling with `incremental` or `composite` options the plugin will
+store compiled files in this folder. This allows the use of incremental
+compilation.
+
+```js
+typescript({
+  cacheDir: '.rollup.tscache'
+});
+```
+
+### `noForceEmit`
+
+Type: `Boolean`<br>
+Default: `false`
+
+Earlier version of `@rollup/plugin-typescript` required that the `compilerOptions` `noEmit` and `emitDeclarationOnly` both false to guarantee that source code was fed into the next plugin/output. This is no longer true. This option disables the plugin forcing the values of those options and instead defers to the values set in `tsconfig.json`.
+
+`noForceEmit` can be very useful if you use with `@rollup/plugin-babel` and `@babel/preset-typescript`. Having `@rollup/plugin-typescript` only do typechecking / declarations with `"emitDeclarationOnly": true` while deferring to `@rollup/plugin-babel` for transpilation can dramatically reduce `rollup` build times for large projects.
 
 ### Typescript compiler options
 
@@ -136,11 +247,12 @@ These compiler options are ignored by Rollup:
 
 - `noEmitHelpers`, `importHelpers`: The `tslib` helper module always must be used.
 - `noEmit`, `emitDeclarationOnly`: Typescript needs to emit code for the plugin to work with.
+  - _Note: While this was true for early iterations of `@rollup/plugin-typescript`, it is no longer. To override this behavior, and defer to `tsconfig.json` for these options, see the [`noForceEmit`](#noForceEmit) option_
 - `noResolve`: Preventing Typescript from resolving code may break compilation
 
 ### Importing CommonJS
 
-Though it is not recommended, it is possible to configure this plugin to handle imports of CommonJS files from TypeScript. For this, you need to specify `CommonJS` as the module format and add `rollup-plugin-commonjs` to transpile the CommonJS output generated by TypeScript to ES Modules so that rollup can process it.
+Though it is not recommended, it is possible to configure this plugin to handle imports of CommonJS files from TypeScript. For this, you need to specify `CommonJS` as the module format and add [`@rollup/plugin-commonjs`](https://github.com/rollup/plugins/tree/master/packages/commonjs) to transpile the CommonJS output generated by TypeScript to ES Modules so that rollup can process it.
 
 ```js
 // rollup.config.js
@@ -150,9 +262,9 @@ import commonjs from '@rollup/plugin-commonjs';
 export default {
   input: './main.ts',
   plugins: [
-    typescript({ module: 'CommonJS' }),
-    commonjs({ extensions: ['.js', '.ts'] }), // the ".ts" extension is required
-  ],
+    typescript({ compilerOptions: { module: 'CommonJS' } }),
+    commonjs({ extensions: ['.js', '.ts'] }) // the ".ts" extension is required
+  ]
 };
 ```
 
@@ -180,7 +292,7 @@ import typescript from '@rollup/plugin-typescript';
 export default {
   // … other options …
   acornInjectPlugins: [jsx()],
-  plugins: [typescript({ jsx: 'preserve' })],
+  plugins: [typescript({ compilerOptions: { jsx: 'preserve' } })]
 };
 ```
 
